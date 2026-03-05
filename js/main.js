@@ -336,7 +336,7 @@ async function loginWithGoogle() {
   }
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname }
+    options: { redirectTo: window.location.href }
   });
   if (error) showAuthError('loginError', '⚠️ ' + error.message);
 }
@@ -1419,13 +1419,68 @@ function initAds() {
 // EXPORT
 // ══════════════════════════════════════════════════════
 function exportData() {
-  const data = JSON.stringify({ transactions: State.transactions, budget: State.budget, debts: State.debts, goals: State.goals, calEvents: State.calEvents }, null, 2);
+  const data = JSON.stringify({
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    transactions:    State.transactions,
+    budget:          State.budget,
+    debts:           State.debts,
+    goals:           State.goals,
+    calEvents:       State.calEvents,
+    txIdCounter:     State.txIdCounter,
+    calIdCounter:    State.calIdCounter,
+    debtIdCounter:   State.debtIdCounter,
+    budgetIdCounter: State.budgetIdCounter,
+    goalIdCounter:   State.goalIdCounter,
+  }, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = 'fincontrol-data.json'; a.click();
   URL.revokeObjectURL(url);
   showToast('📤 Datos exportados');
   document.getElementById('userMenu').classList.add('hidden');
+}
+
+function importData() {
+  document.getElementById('userMenu').classList.add('hidden');
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      // Validación mínima
+      if (!data || typeof data !== 'object') throw new Error('Archivo inválido');
+      const hasData = data.transactions || data.budget || data.debts || data.goals || data.calEvents;
+      if (!hasData) throw new Error('El archivo no contiene datos de FinControl');
+
+      const confirmed = confirm(
+        `¿Importar datos de "${file.name}"?\n\nEsto REEMPLAZARÁ todos tus datos actuales. Esta acción no se puede deshacer.`
+      );
+      if (!confirmed) return;
+
+      applyStateData(data);
+
+      // Restaurar contadores si vienen en el archivo, si no recalcular
+      if (!data.txIdCounter && data.transactions?.length)
+        State.txIdCounter = Math.max(...data.transactions.map(t => t.id || 0)) + 1;
+      if (!data.calIdCounter && data.calEvents?.length)
+        State.calIdCounter = Math.max(...data.calEvents.map(e => e.id || 0)) + 1;
+      if (!data.debtIdCounter && data.debts?.length)
+        State.debtIdCounter = Math.max(...data.debts.map(d => d.id || 0)) + 1;
+
+      await saveState();
+      rerenderCurrentSection();
+      showToast('📥 Datos importados correctamente');
+    } catch (err) {
+      showToast('❌ Error al importar: ' + err.message);
+    }
+  };
+  input.click();
 }
 
 // ══════════════════════════════════════════════════════
