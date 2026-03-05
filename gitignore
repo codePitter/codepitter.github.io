@@ -1,0 +1,59 @@
+# ══════════════════════════════════════════════════════
+# FinControl — .gitignore
+# ══════════════════════════════════════════════════════
+
+# ── Editor & IDE ──────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# ── Live Server / Dev tools ───────────────────────────
+.live-server.json
+settings.json
+
+# ── Dependencias (futuro) ─────────────────────────────
+node_modules/
+package-lock.json
+yarn.lock
+.pnp.*
+.yarn/
+
+# ── Builds (futuro) ───────────────────────────────────
+dist/
+build/
+out/
+.cache/
+.parcel-cache/
+.vite/
+
+# ── Variables de entorno ──────────────────────────────
+# NUNCA commitear Client IDs, tokens ni secrets
+.env
+.env.local
+.env.*.local
+.env.production
+config.local.js
+secrets.js
+
+# ── Logs ──────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Archivos temporales ───────────────────────────────
+*.tmp
+*.bak
+*.orig
+*.swp
+*~
+
+# ── OS ────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+desktop.ini
+ehthumbs.db

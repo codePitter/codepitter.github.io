@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="cyber" data-mode="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinControl — Economía Personal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400;700&family=Syncopate:wght@400;700&family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       AUTH SCREEN
+  ════════════════════════════════════════════ -->
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-bg-pattern"></div>
+    <div class="auth-card">
+      <div class="auth-logo">
+        <span class="auth-logo-icon">◈</span>
+        <span class="auth-logo-text">FinControl</span>
+        <span class="auth-logo-sub">Economía Personal</span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Crear Cuenta</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginForm" class="auth-form">
+        <button class="btn-google" onclick="loginWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.706c-.18-.54-.282-1.117-.282-1.706s.102-1.166.282-1.706V4.962H.957C.347 6.175 0 7.55 0 9s.348 2.826.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z"/></svg>
+          Continuar con Google
+          <span class="coming-soon-badge">Próximamente</span>
+        </button>
+        <div class="auth-divider"><span>o</span></div>
+        <div class="auth-field">
+          <label>Correo electrónico</label>
+          <input type="email" id="loginEmail" placeholder="tu@email.com">
+        </div>
+        <div class="auth-field">
+          <label>Contraseña</label>
+          <input type="password" id="loginPass" placeholder="••••••••">
+        </div>
+        <button class="btn-auth-primary" onclick="loginDemo()">Ingresar</button>
+        <button class="btn-auth-demo" onclick="loginDemo()">
+          ▶ Entrar en modo demostración
+        </button>
+        <p class="auth-note">* La autenticación real con Google estará disponible en la versión final. Por ahora podés usar el modo demo.</p>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="registerForm" class="auth-form hidden">
+        <button class="btn-google" onclick="loginWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.706c-.18-.54-.282-1.117-.282-1.706s.102-1.166.282-1.706V4.962H.957C.347 6.175 0 7.55 0 9s.348 2.826.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z"/></svg>
+          Registrarse con Google
+          <span class="coming-soon-badge">Próximamente</span>
+        </button>
+        <div class="auth-divider"><span>o</span></div>
+        <div class="auth-field">
+          <label>Nombre completo</label>
+          <input type="text" id="regName" placeholder="Tu nombre">
+        </div>
+        <div class="auth-field">
+          <label>Correo electrónico</label>
+          <input type="email" id="regEmail" placeholder="tu@email.com">
+        </div>
+        <div class="auth-field">
+          <label>Contraseña</label>
+          <input type="password" id="regPass" placeholder="••••••••">
+        </div>
+        <button class="btn-auth-primary" onclick="loginDemo()">Crear Cuenta</button>
+        <p class="auth-note">* Registro local por ahora. Sincronización en la nube próximamente.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       MAIN APP
+  ════════════════════════════════════════════ -->
+  <div id="appShell" class="hidden">
+
+    <!-- NAV -->
+    <nav class="topnav">
+      <div class="nav-left">
+        <button class="nav-hamburger" onclick="toggleSidebar()" title="Menú">☰</button>
+        <div class="nav-brand">
+          <span class="nav-brand-icon">◈</span>
+          <span class="nav-brand-text">FinControl</span>
+        </div>
+      </div>
+      <div class="nav-center">
+        <button class="nav-tab active" data-section="dashboard" onclick="showSection('dashboard',this)">Dashboard</button>
+        <button class="nav-tab" data-section="gastos" onclick="showSection('gastos',this)">Gastos</button>
+        <button class="nav-tab" data-section="presupuesto" onclick="showSection('presupuesto',this)">Presupuesto</button>
+        <button class="nav-tab" data-section="calendario" onclick="showSection('calendario',this)">Calendario</button>
+        <button class="nav-tab" data-section="deudas" onclick="showSection('deudas',this)">Deudas</button>
+        <button class="nav-tab" data-section="anual" onclick="showSection('anual',this)">Anual</button>
+      </div>
+      <div class="nav-right">
+        <span class="nav-date" id="navDate"></span>
+        <button class="nav-icon-btn" onclick="openThemePanel()" title="Temas">🎨</button>
+        <button class="nav-icon-btn" onclick="toggleMode()" id="modeToggle" title="Cambiar modo">🌙</button>
+        <div class="nav-avatar" onclick="toggleUserMenu()" title="Cuenta">
+          <span id="avatarInitial">D</span>
+          <div class="user-menu hidden" id="userMenu">
+            <div class="user-menu-name" id="userMenuName">Modo Demo</div>
+            <div class="user-menu-email" id="userMenuEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2145444c4e6147484f424e4f55534e4d0f405151">[email&#160;protected]</a></div>
+            <hr>
+            <button onclick="openThemePanel()">🎨 Apariencia</button>
+            <button onclick="exportData()">📤 Exportar datos</button>
+            <button onclick="logout()">🚪 Cerrar sesión</button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- SIDEBAR (mobile) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-brand">◈ FinControl</span>
+        <button onclick="toggleSidebar()">✕</button>
+      </div>
+      <nav class="sidebar-nav">
+        <button onclick="showSection('dashboard');toggleSidebar()">📊 Dashboard</button>
+        <button onclick="showSection('gastos');toggleSidebar()">💸 Gastos</button>
+        <button onclick="showSection('presupuesto');toggleSidebar()">📋 Presupuesto</button>
+        <button onclick="showSection('calendario');toggleSidebar()">📅 Calendario</button>
+        <button onclick="showSection('deudas');toggleSidebar()">🚨 Deudas</button>
+        <button onclick="showSection('anual');toggleSidebar()">📈 Anual</button>
+      </nav>
+    </aside>
+    <div class="sidebar-overlay hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="app-main">
+
+      <!-- ── DASHBOARD ── -->
+      <section id="sec-dashboard" class="app-section active">
+        <div class="section-header">
+          <h2>Dashboard</h2>
+          <div class="header-actions">
+            <div class="chip-group">
+              <span class="chip active" onclick="setChipActive(this,'dash')">Este mes</span>
+              <span class="chip" onclick="setChipActive(this,'dash')">Semana</span>
+              <span class="chip" onclick="setChipActive(this,'dash')">Año</span>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openTxModal()">+ Agregar</button>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-grid" id="kpiGrid"></div>
+
+        <!-- Alerts -->
+        <div id="dashAlerts"></div>
+
+        <!-- Charts -->
+        <div class="grid-2 mt16">
+          <div class="card">
+            <div class="card-title">Distribución de gastos</div>
+            <div class="chart-wrap"><canvas id="chartPie"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Ingreso vs Gasto — 6 meses</div>
+            <div class="chart-wrap"><canvas id="chartBar"></canvas></div>
+          </div>
+        </div>
+
+        <!-- 50/30/20 -->
+        <div class="card mt16">
+          <div class="card-title">Regla 50 · 30 · 20</div>
+          <div class="rule-grid" id="ruleGrid"></div>
+        </div>
+
+        <!-- Recent TX -->
+        <div class="card mt16">
+          <div class="card-header-row">
+            <div class="card-title mb0">Transacciones recientes</div>
+            <button class="btn btn-ghost btn-sm" onclick="showSection('gastos')">Ver todas →</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="recentTxTable">
+              <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Tipo</th><th>Monto</th><th></th></tr></thead>
+              <tbody id="recentTxBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── GASTOS ── -->
+      <section id="sec-gastos" class="app-section">
+        <div class="section-header">
+          <h2>Registro de Gastos</h2>
+          <button class="btn btn-primary" onclick="openTxModal()">+ Nueva transacción</button>
+        </div>
+
+        <div class="card mb16">
+          <div class="filter-row">
+            <div class="form-group">
+              <label>Categoría</label>
+              <select id="fCat" onchange="renderGastos()"><option value="">Todas</option></select>
+            </div>
+            <div class="form-group">
+              <label>Tipo</label>
+              <select id="fType" onchange="renderGastos()">
+                <option value="">Todos</option>
+                <option value="gasto">Gasto</option>
+                <option value="ingreso">Ingreso</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Mes</label>
+              <select id="fMonth" onchange="renderGastos()"><option value="">Todos</option></select>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Limpiar</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Frec.</th><th>Tipo</th><th>Monto</th><th></th></tr></thead>
+              <tbody id="gastosBody"></tbody>
+            </table>
+          </div>
+          <div id="gastosEmpty" class="empty-state hidden">📭 Sin transacciones con estos filtros</div>
+        </div>
+
+        <div class="grid-2 mt16">
+          <div class="card">
+            <div class="card-title">Por categoría</div>
+            <div id="catBars"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Gasto diario del mes</div>
+            <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── PRESUPUESTO ── -->
+      <section id="sec-presupuesto" class="app-section">
+        <div class="section-header">
+          <h2>Presupuesto Mensual</h2>
+          <button class="btn btn-ghost" onclick="saveBudgetFeedback(this)">💾 Guardar</button>
+        </div>
+        <div class="grid-2">
+          <div>
+            <div class="card mb16">
+              <div class="card-header-row">
+                <div class="card-title mb0">💰 Ingresos</div>
+                <button class="btn btn-ghost btn-xs" onclick="addBudgetRow('income')">+ Agregar</button>
+              </div>
+              <div id="budgetIncome"></div>
+            </div>
+            <div class="card mb16">
+              <div class="card-header-row">
+                <div class="card-title mb0">🔒 Gastos Fijos</div>
+                <button class="btn btn-ghost btn-xs" onclick="addBudgetRow('fixed')">+ Agregar</button>
+              </div>
+              <div id="budgetFixed"></div>
+            </div>
+            <div class="card">
+              <div class="card-header-row">
+                <div class="card-title mb0">📊 Variables / Estimados</div>
+                <button class="btn btn-ghost btn-xs" onclick="addBudgetRow('variable')">+ Agregar</button>
+              </div>
+              <div id="budgetVariable"></div>
+            </div>
+          </div>
+          <div>
+            <div class="card mb16">
+              <div class="card-title">Resumen</div>
+              <div id="budgetSummary"></div>
+            </div>
+            <div class="card mb16">
+              <div class="card-title">Objetivos de Ahorro 🎯</div>
+              <div id="savingsGoals"></div>
+              <button class="btn btn-ghost btn-sm mt8" onclick="addGoal()">+ Nuevo objetivo</button>
+            </div>
+            <div class="card">
+              <div class="card-title">Presupuestado vs Real</div>
+              <div class="chart-wrap"><canvas id="chartBudget"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── CALENDARIO ── -->
+      <section id="sec-calendario" class="app-section">
+        <div class="section-header">
+          <h2>Calendario Financiero</h2>
+          <button class="btn btn-primary btn-sm" onclick="openCalModal()">+ Evento</button>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="cal-nav">
+              <button class="btn btn-ghost btn-sm" onclick="prevMonth()">← Anterior</button>
+              <span class="cal-title" id="calTitle"></span>
+              <button class="btn btn-ghost btn-sm" onclick="nextMonth()">Siguiente →</button>
+            </div>
+            <div class="cal-days-header">
+              <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+          <div>
+            <div class="card mb16">
+              <div class="card-title">Próximos vencimientos</div>
+              <div id="upcomingList"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Eventos del mes</div>
+              <div id="monthEventsList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── DEUDAS ── -->
+      <section id="sec-deudas" class="app-section">
+        <div class="section-header">
+          <h2>Gestión de Deudas</h2>
+          <button class="btn btn-primary" onclick="openDebtModal()">+ Agregar deuda</button>
+        </div>
+        <div class="kpi-grid kpi-grid-2 mb16">
+          <div class="card kpi-card">
+            <div class="kpi-label">Deuda total</div>
+            <div class="kpi-value clr-danger" id="totalDebtVal">$0</div>
+            <div class="kpi-sub" id="totalDebtSub">Sin deudas activas</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Cuota mensual estimada</div>
+            <div class="kpi-value clr-warn" id="totalCuotaVal">$0</div>
+            <div class="kpi-sub">Promedio de todos los planes</div>
+          </div>
+        </div>
+        <div id="debtList" class="debt-list"></div>
+        <div class="card mt16">
+          <div class="card-title">🧮 Calculadora de Plan de Pago</div>
+          <div class="filter-row">
+            <div class="form-group">
+              <label>Deuda total ($)</label>
+              <input type="number" id="calcDebt" value="0" oninput="calcPayment()">
+            </div>
+            <div class="form-group">
+              <label>Cuotas</label>
+              <input type="number" id="calcCuotas" value="12" oninput="calcPayment()">
+            </div>
+            <div class="form-group">
+              <label>Interés mensual (%)</label>
+              <input type="number" id="calcInt" value="0" step="0.1" oninput="calcPayment()">
+            </div>
+          </div>
+          <div id="calcResult" class="calc-result"></div>
+        </div>
+      </section>
+
+      <!-- ── ANUAL ── -->
+      <section id="sec-anual" class="app-section">
+        <div class="section-header">
+          <h2>Vista Anual</h2>
+          <select class="select-inline" onchange="setYear(+this.value)">
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+            <option value="2027">2027</option>
+          </select>
+        </div>
+        <div class="card mb16">
+          <div class="card-title">Proyección 12 meses</div>
+          <div class="chart-wrap chart-wrap--anual"><canvas id="chartAnual"></canvas></div>
+        </div>
+        <div class="card mb16 table-scroll-wrap">
+          <div class="card-title">Tabla anual detallada</div>
+          <div class="table-wrap">
+            <table class="data-table anual-table" id="anualTable"></table>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="card kpi-card">
+            <div class="kpi-label">Ingresos anuales proyectados</div>
+            <div class="kpi-value clr-success" id="anualIncome">$0</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Egresos anuales proyectados</div>
+            <div class="kpi-value clr-danger" id="anualExpense">$0</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Saldo proyectado anual</div>
+            <div class="kpi-value clr-accent" id="anualBalance">$0</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       THEME PANEL
+  ════════════════════════════════════════════ -->
+  <div class="panel-overlay hidden" id="themeOverlay" onclick="closeThemePanel()"></div>
+  <aside class="theme-panel hidden" id="themePanel">
+    <div class="panel-header">
+      <h3>🎨 Apariencia</h3>
+      <button onclick="closeThemePanel()">✕</button>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Modo</div>
+      <div class="mode-toggle-row">
+        <button class="mode-btn active" id="modeDark" onclick="setMode('dark')">🌙 Oscuro</button>
+        <button class="mode-btn" id="modeLight" onclick="setMode('light')">☀️ Claro</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Tema visual</div>
+      <div class="theme-options">
+        <div class="theme-option active" data-theme="cyber" onclick="setTheme('cyber')">
+          <div class="theme-preview-swatch swatch-cyber">
+            <span class="swatch-icon-cyber">⚡</span>
+          </div>
+          <span class="theme-option-name">Cyberpunk</span>
+          <span class="theme-option-check">✓</span>
+        </div>
+        <div class="theme-option" data-theme="future" onclick="setTheme('future')">
+          <div class="theme-preview-swatch swatch-future">
+            <span class="swatch-icon-future">🔵</span>
+          </div>
+          <span class="theme-option-name">Futurista</span>
+          <span class="theme-option-check">✓</span>
+        </div>
+        <div class="theme-option" data-theme="scifi" onclick="setTheme('scifi')">
+          <div class="theme-preview-swatch swatch-scifi">
+            <span class="swatch-icon-scifi">🟢</span>
+          </div>
+          <span class="theme-option-name">Sci-Fi</span>
+          <span class="theme-option-check">✓</span>
+        </div>
+        <div class="theme-option" data-theme="gold" onclick="setTheme('gold')">
+          <div class="theme-preview-swatch swatch-gold">
+            <span class="swatch-icon-gold">🥇</span>
+          </div>
+          <span class="theme-option-name">Sofisticado</span>
+          <span class="theme-option-check">✓</span>
+        </div>
+        <div class="theme-option" data-theme="windows" onclick="setTheme('windows')">
+          <div class="theme-preview-swatch swatch-windows">
+            <span class="swatch-icon-windows">🪟</span>
+          </div>
+          <span class="theme-option-name">Windows 11</span>
+          <span class="theme-option-check">✓</span>
+        </div>
+        <div class="theme-option" data-theme="mac" onclick="setTheme('mac')">
+          <div class="theme-preview-swatch swatch-mac">
+            <span class="swatch-icon-mac">🍎</span>
+          </div>
+          <span class="theme-option-name">macOS</span>
+          <span class="theme-option-check">✓</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Vista previa</div>
+      <div class="theme-mini-preview" id="miniPreview">
+        <div class="mp-bar"></div>
+        <div class="mp-card">
+          <div class="mp-kpi-label">SALDO</div>
+          <div class="mp-kpi-value">$125.000</div>
+          <div class="mp-progress"><div class="mp-progress-fill mp-progress-fill--demo"></div></div>
+        </div>
+        <div class="mp-row"><span>Alquiler</span><span>$250.000</span></div>
+        <div class="mp-row"><span>Transporte</span><span>$20.000</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════════════════
+       MODALS
+  ════════════════════════════════════════════ -->
+
+  <!-- TX MODAL -->
+  <div class="modal-overlay hidden" id="txOverlay">
+    <div class="modal" id="txModal">
+      <div class="modal-header">
+        <h3 id="txModalTitle">Nueva Transacción</h3>
+        <button onclick="closeTxModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="txType">
+              <option value="gasto">💸 Gasto</option>
+              <option value="ingreso">💰 Ingreso</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="txDate">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Descripción</label>
+            <input type="text" id="txDesc" placeholder="Ej: Supermercado">
+          </div>
+          <div class="form-group">
+            <label>Monto ($)</label>
+            <input type="number" id="txAmount" placeholder="0" min="0">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Categoría</label>
+            <select id="txCat"></select>
+          </div>
+          <div class="form-group">
+            <label>Frecuencia</label>
+            <select id="txFreq">
+              <option value="único">Único</option>
+              <option value="diario">Diario</option>
+              <option value="semanal">Semanal</option>
+              <option value="mensual">Mensual</option>
+              <option value="anual">Anual</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notas (opcional)</label>
+          <input type="text" id="txNotes" placeholder="Notas...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeTxModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveTx()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAL EVENT MODAL -->
+  <div class="modal-overlay hidden" id="calOverlay">
+    <div class="modal" id="calModal">
+      <div class="modal-header">
+        <h3>Agregar Evento Financiero</h3>
+        <button onclick="closeCalModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="calDate">
+          </div>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="calType">
+              <option value="vencimiento">🔴 Vencimiento</option>
+              <option value="cobro">🟢 Cobro</option>
+              <option value="recordatorio">🔵 Recordatorio</option>
+              <option value="gasto">🟡 Gasto planeado</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <input type="text" id="calDesc" placeholder="Ej: Vencimiento alquiler">
+        </div>
+        <div class="form-group">
+          <label>Monto (opcional)</label>
+          <input type="number" id="calAmount" placeholder="0">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeCalModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveCalEvent()">Agregar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEBT MODAL -->
+  <div class="modal-overlay hidden" id="debtOverlay">
+    <div class="modal" id="debtModal">
+      <div class="modal-header">
+        <h3>Agregar Deuda</h3>
+        <button onclick="closeDebtModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" id="debtName" placeholder="Ej: Tarjeta Visa">
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Monto total ($)</label>
+            <input type="number" id="debtAmount" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Cuotas</label>
+            <input type="number" id="debtCuotas" value="12">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Interés mensual (%)</label>
+            <input type="number" id="debtInt" value="0" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Próx. vencimiento</label>
+            <input type="date" id="debtDue">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeDebtModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveDebt()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
