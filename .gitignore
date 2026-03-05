@@ -1,5 +1,6 @@
 # Credenciales — nunca subir al repo
 config.js
+password.txt
 
 # Sistema operativo
 .DS_Store
