@@ -10,7 +10,7 @@
 // ══════════════════════════════════════════════════════
 const State = {
   user: null,
-  theme: 'windows',
+  theme: 'cyber',
   mode: 'dark',
   currentSection: 'dashboard',
   dashPeriod: 'month', // 'month' | 'week' | 'year'
@@ -31,7 +31,9 @@ const State = {
     fixed:    [],
     variable: []
   },
-  goals: []
+  goals: [],
+  savings: [],
+  savingIdCounter: 1
 };
 
 // ══════════════════════════════════════════════════════
@@ -252,6 +254,8 @@ function getStateData() {
     debtIdCounter:   State.debtIdCounter,
     budgetIdCounter: State.budgetIdCounter,
     goalIdCounter:   State.goalIdCounter,
+    savings:         State.savings,
+    savingIdCounter: State.savingIdCounter,
   };
 }
 
@@ -267,6 +271,8 @@ function applyStateData(data) {
   if (data.debtIdCounter)   State.debtIdCounter   = data.debtIdCounter;
   if (data.budgetIdCounter) State.budgetIdCounter = data.budgetIdCounter;
   if (data.goalIdCounter)   State.goalIdCounter   = data.goalIdCounter;
+  if (data.savings)         State.savings         = data.savings;
+  if (data.savingIdCounter) State.savingIdCounter = data.savingIdCounter;
 }
 
 // ── Obtiene el UUID de Supabase del usuario actual ──────────────────────────
@@ -604,6 +610,7 @@ function renderSection(id) {
     case 'presupuesto': renderBudget(); break;
     case 'calendario':  renderCalendar(); break;
     case 'deudas':      renderDebts(); break;
+    case 'ahorro':      renderSavings(); break;
     case 'anual':       renderAnual(); break;
   }
 }
@@ -649,39 +656,41 @@ function renderDashboard() {
   const barColor = pct > 85 ? '#f85149' : pct > 65 ? '#ffa657' : '#3fb950';
 
   // KPIs
-  document.getElementById('kpiGrid').innerHTML = `
-    <div class="card kpi-card">
-      <div class="kpi-label">Ingresos del mes</div>
-      <div class="kpi-value clr-success">${fmt(income)}</div>
-      <div class="kpi-sub">${txs.filter(t=>t.type==='ingreso').length} transacción(es)</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%;background:#3fb950"></div></div>
-    </div>
-    <div class="card kpi-card">
-      <div class="kpi-label">Gastos registrados</div>
-      <div class="kpi-value clr-danger">${fmt(spent)}</div>
-      <div class="kpi-sub">${pct}% del ingreso</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div>
-    </div>
-    <div class="card kpi-card">
-      <div class="kpi-label">Saldo disponible</div>
-      <div class="kpi-value ${balance < 0 ? 'clr-danger' : 'clr-accent'}">${fmt(balance)}</div>
-      <div class="kpi-sub">${balance < 0 ? '⚠️ Déficit' : 'Margen libre'}</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.max(0,100-pct)}%;background:var(--clr-accent)"></div></div>
-    </div>
-    <div class="card kpi-card">
-      <div class="kpi-label">Deuda total</div>
-      <div class="kpi-value clr-danger">${fmt(State.debts.reduce((a,d)=>a+d.remaining,0))}</div>
-      <div class="kpi-sub">${State.debts.length} deuda(s) activa(s)</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${State.debts.length?'100':'0'}%;background:#f85149"></div></div>
-    </div>
-  `;
+  const totalSaved      = (State.savings || []).reduce((a, s) => a + (s.saved || 0), 0);
+  const totalSavingGoal = (State.savings || []).reduce((a, s) => a + (s.goal  || 0), 0);
+  const savingPct       = totalSavingGoal > 0 ? Math.min(100, Math.round(totalSaved / totalSavingGoal * 100)) : 0;
+  const nSavings        = (State.savings || []).length;
+
+  function kpiCard(label, valueHtml, sub, barW, barBg, click) {
+    return '<div class="card kpi-card"' + (click ? ' style="cursor:pointer" onclick="' + click + '"' : '') + '>' +
+      '<div class="kpi-label">' + label + '</div>' +
+      '<div class="kpi-value ' + valueHtml.cls + '">' + valueHtml.val + '</div>' +
+      '<div class="kpi-sub">' + sub + '</div>' +
+      '<div class="kpi-bar"><div class="kpi-bar-fill" style="width:' + barW + '%;background:' + barBg + '"></div></div>' +
+      '</div>';
+  }
+
+  const totalDebt = State.debts.reduce((a,d) => a + d.remaining, 0);
+  document.getElementById('kpiGrid').innerHTML =
+    kpiCard('Ingresos del mes',    {cls:'clr-success', val: fmt(income)},  txs.filter(t=>t.type==='ingreso').length + ' transacción(es)', 100, '#3fb950') +
+    kpiCard('Gastos registrados',  {cls:'clr-danger',  val: fmt(spent)},   pct + '% del ingreso', Math.min(pct,100), barColor) +
+    kpiCard('Saldo disponible',    {cls: balance<0?'clr-danger':'clr-accent', val: fmt(balance)}, balance<0?'⚠️ Déficit':'Margen libre', Math.max(0,100-pct), 'var(--clr-accent)') +
+    kpiCard('Ahorro total 🐷',     {cls:'clr-success', val: fmt(totalSaved)}, nSavings + ' alcancía(s) · ' + savingPct + '% de metas', savingPct, 'var(--clr-success)', "showSection('ahorro')") +
+    kpiCard('Deuda total',         {cls:'clr-danger',  val: fmt(totalDebt)},  State.debts.length + ' deuda(s) activa(s)', State.debts.length?100:0, '#f85149');
 
   // Alerts
   let alerts = '';
   if (balance < 0) alerts += `<div class="alert alert-danger">🚨 <strong>Déficit mensual:</strong> tus gastos superan tus ingresos en ${fmt(Math.abs(balance))}.</div>`;
   else if (balance < 50000 && income > 0) alerts += `<div class="alert alert-warn">⚡ <strong>Saldo ajustado:</strong> solo quedan ${fmt(balance)} para gastos variables.</div>`;
-  if (State.debts.length) alerts += `<div class="alert alert-danger">💳 <strong>Deudas activas:</strong> ${fmt(State.debts.reduce((a,d)=>a+d.remaining,0))} pendientes.</div>`;
-  if (!alerts) alerts = `<div class="alert alert-ok">✅ <strong>Todo en orden:</strong> no hay alertas críticas este mes.</div>`;
+  if (State.debts.length) alerts += '<div class="alert alert-danger">💳 <strong>Deudas activas:</strong> ' + fmt(State.debts.reduce((a,d)=>a+d.remaining,0)) + ' pendientes.</div>';
+  if ((State.savings||[]).length > 0) {
+    const overdue = (State.savings||[]).filter(s => s.dueDate && new Date(s.dueDate+'T00:00:00') < new Date() && s.saved < s.goal);
+    if (overdue.length)
+      alerts += '<div class="alert alert-danger">⏰ <strong>Alcancías vencidas:</strong> ' + overdue.map(s=>s.name).join(', ') + ' sin alcanzar la meta.</div>';
+    else
+      alerts += '<div class="alert alert-ok">🐷 <strong>Ahorro:</strong> ' + fmt(totalSaved) + ' ahorrados &middot; ' + savingPct + '% de metas. <span style="cursor:pointer;color:var(--clr-accent)" onclick="showSection(&quot;ahorro&quot;)">Ver &rarr;</span></div>';
+  }
+  if (!alerts) alerts = '<div class="alert alert-ok">✅ <strong>Todo en orden:</strong> no hay alertas críticas este mes.</div>';
   document.getElementById('dashAlerts').innerHTML = alerts;
 
   // Pie chart
@@ -1234,6 +1243,211 @@ function calcPayment() {
 }
 
 // ══════════════════════════════════════════════════════
+
+
+// ══════════════════════════════════════════════════════
+// AHORRO — ALCANCÍAS
+// ══════════════════════════════════════════════════════
+function renderSavings() {
+  const savings = State.savings;
+  const totalSaved = savings.reduce((a, s) => a + s.saved, 0);
+  const totalGoal  = savings.reduce((a, s) => a + s.goal, 0);
+  const globalPct  = totalGoal > 0 ? Math.round(totalSaved / totalGoal * 100) : 0;
+
+  const el = id => document.getElementById(id);
+  if (el('savingTotalSaved')) el('savingTotalSaved').textContent = fmt(totalSaved);
+  if (el('savingTotalGoal'))  el('savingTotalGoal').textContent  = fmt(totalGoal);
+  if (el('savingTotalPct'))   el('savingTotalPct').textContent   = globalPct + '%';
+  if (el('savingTotalSub'))   el('savingTotalSub').textContent   = savings.length + ' alcancía(s) activa(s)';
+
+  const list = el('savingList');
+  if (!list) return;
+
+  if (!savings.length) {
+    list.innerHTML = '<div class="card" style="text-align:center;color:var(--clr-muted);padding:48px;font-family:var(--font-mono)">🐷 Sin alcancías. Creá una para empezar.</div>';
+    return;
+  }
+
+  list.innerHTML = savings.map(s => {
+    const pct        = s.goal > 0 ? Math.min(100, Math.round(s.saved / s.goal * 100)) : 0;
+    const remaining  = Math.max(0, s.goal - s.saved);
+    const now        = new Date();
+    const dueDate    = s.dueDate ? new Date(s.dueDate + 'T00:00:00') : null;
+    const daysLeft   = dueDate ? Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24)) : null;
+    const isOverdue  = daysLeft !== null && daysLeft < 0;
+    const isNear     = daysLeft !== null && daysLeft >= 0 && daysLeft <= 30;
+    const barColor   = pct >= 100 ? 'var(--clr-success)' : pct >= 60 ? 'var(--clr-accent)' : pct >= 30 ? 'var(--clr-warn)' : 'var(--clr-danger)';
+    const monthsLeft = daysLeft !== null && daysLeft > 0 ? Math.max(1, Math.ceil(daysLeft / 30)) : null;
+    const monthlyNeeded = (monthsLeft && remaining > 0) ? fmt(Math.ceil(remaining / monthsLeft)) : null;
+    const lastDeposits  = (s.deposits || []).slice(-3).reverse();
+
+    // Build due date badge
+    let dueBadge = '';
+    if (dueDate) {
+      const dateStr = dueDate.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+      const daysStr = daysLeft !== null && !isOverdue ? ' (' + daysLeft + 'd)' : '';
+      const icon    = isOverdue ? '⚠️ Venció' : '📅';
+      const cls     = isOverdue ? 'overdue' : isNear ? 'near' : '';
+      dueBadge = '<div class="saving-due ' + cls + '">' + icon + ' ' + dateStr + '<span class="saving-days">' + daysStr + '</span></div>';
+    }
+
+    // Build deposits html
+    let depositsHtml = '';
+    if (lastDeposits.length) {
+      const rows = lastDeposits.map(d =>
+        '<div class="saving-deposit-row">' +
+          '<span class="mono clr-muted" style="font-size:10px">' + d.date + '</span>' +
+          '<span>' + (d.note || '—') + '</span>' +
+          '<span class="clr-success mono">+' + fmt(d.amount) + '</span>' +
+        '</div>'
+      ).join('');
+      depositsHtml = '<div class="saving-deposits"><div class="saving-deposits-title">Últimos movimientos</div>' + rows + '</div>';
+    }
+
+    const completeTag = pct >= 100 ? '<span class="saving-complete">🎉 ¡Meta alcanzada!</span>' : '';
+    const monthlyTag  = monthlyNeeded ? '<span>Ahorro mensual sugerido: <strong>' + monthlyNeeded + '</strong></span>' : '';
+
+    return '<div class="saving-card">' +
+        '<div class="saving-header">' +
+          '<div class="saving-header-left">' +
+            '<div class="saving-name">' + s.name + '</div>' +
+            (s.notes ? '<div class="saving-note">' + s.notes + '</div>' : '') +
+          '</div>' +
+          '<div class="saving-header-right">' + dueBadge + '</div>' +
+        '</div>' +
+        '<div class="saving-amounts">' +
+          '<div>' +
+            '<div class="saving-amount-label">AHORRADO</div>' +
+            '<div class="saving-amount-value clr-success">' + fmt(s.saved) + '</div>' +
+          '</div>' +
+          '<div class="saving-pct-badge" style="background:' + barColor + '20;color:' + barColor + '">' + pct + '%</div>' +
+          '<div style="text-align:right">' +
+            '<div class="saving-amount-label">META</div>' +
+            '<div class="saving-amount-value clr-accent">' + fmt(s.goal) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="saving-progress-bar"><div class="saving-progress-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>' +
+        '<div class="saving-meta-row">' +
+          '<span>Faltan: <strong>' + fmt(remaining) + '</strong></span>' +
+          monthlyTag + completeTag +
+        '</div>' +
+        depositsHtml +
+        '<div class="saving-actions">' +
+          '<button class="btn btn-success btn-sm" onclick="openSavingDepositModal(' + s.id + ')">💰 Agregar ingreso</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="openSavingModal(' + s.id + ')">✏️ Modificar</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="deleteSaving(' + s.id + ')">🗑️ Eliminar</button>' +
+        '</div>' +
+      '</div>';
+  }).join('');
+}
+
+// ── Modal crear / editar alcancía ─────────────────────────────────────────
+function openSavingModal(id) {
+  document.getElementById('savingEditId').value  = '';
+  document.getElementById('savingName').value    = '';
+  document.getElementById('savingGoal').value    = '';
+  document.getElementById('savingDate').value    = '';
+  document.getElementById('savingInitial').value = '0';
+  document.getElementById('savingNotes').value   = '';
+  document.getElementById('savingModalTitle').textContent = 'Nueva Alcancía';
+
+  if (id) {
+    const s = State.savings.find(x => x.id === id);
+    if (s) {
+      document.getElementById('savingEditId').value  = s.id;
+      document.getElementById('savingName').value    = s.name;
+      document.getElementById('savingGoal').value    = s.goal;
+      document.getElementById('savingDate').value    = s.dueDate || '';
+      document.getElementById('savingNotes').value   = s.notes || '';
+      document.getElementById('savingModalTitle').textContent = 'Modificar Alcancía';
+    }
+  }
+  document.getElementById('savingOverlay').classList.remove('hidden');
+}
+
+function closeSavingModal() {
+  document.getElementById('savingOverlay').classList.add('hidden');
+}
+
+function saveSaving() {
+  const editId  = document.getElementById('savingEditId').value;
+  const name    = document.getElementById('savingName').value.trim();
+  const goal    = parseFloat(document.getElementById('savingGoal').value) || 0;
+  const dueDate = document.getElementById('savingDate').value;
+  const notes   = document.getElementById('savingNotes').value.trim();
+  const initial = parseFloat(document.getElementById('savingInitial').value) || 0;
+
+  if (!name)     { showToast('⚠️ Ingresá un nombre'); return; }
+  if (goal <= 0) { showToast('⚠️ Ingresá una meta mayor a 0'); return; }
+
+  if (editId) {
+    const s = State.savings.find(x => x.id === parseInt(editId));
+    if (s) { s.name = name; s.goal = goal; s.dueDate = dueDate; s.notes = notes; }
+    showToast('✅ Alcancía actualizada');
+  } else {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const deposits = initial > 0 ? [{ date: todayStr, amount: initial, note: 'Monto inicial' }] : [];
+    State.savings.push({
+      id:        State.savingIdCounter++,
+      name, goal, dueDate, notes,
+      saved:     initial,
+      deposits,
+      createdAt: todayStr,
+    });
+    showToast('🐷 Alcancía creada');
+  }
+
+  closeSavingModal();
+  saveState();
+  renderSavings();
+}
+
+function deleteSaving(id) {
+  if (!confirm('¿Eliminar esta alcancía? Se perderán todos los datos.')) return;
+  State.savings = State.savings.filter(s => s.id !== id);
+  saveState();
+  renderSavings();
+  showToast('🗑️ Alcancía eliminada');
+}
+
+// ── Modal agregar ingreso ─────────────────────────────────────────────────
+function openSavingDepositModal(id) {
+  const s = State.savings.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('savingDepositId').value   = id;
+  document.getElementById('savingDepositTitle').textContent = '💰 Agregar a: ' + s.name;
+  document.getElementById('savingDepositAmt').value  = '';
+  document.getElementById('savingDepositDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('savingDepositNote').value = '';
+  document.getElementById('savingDepositOverlay').classList.remove('hidden');
+}
+
+function closeSavingDepositModal() {
+  document.getElementById('savingDepositOverlay').classList.add('hidden');
+}
+
+function saveSavingDeposit() {
+  const id   = parseInt(document.getElementById('savingDepositId').value);
+  const amt  = parseFloat(document.getElementById('savingDepositAmt').value) || 0;
+  const date = document.getElementById('savingDepositDate').value;
+  const note = document.getElementById('savingDepositNote').value.trim();
+
+  if (amt <= 0) { showToast('⚠️ Ingresá un monto mayor a 0'); return; }
+  if (!date)    { showToast('⚠️ Seleccioná una fecha'); return; }
+
+  const s = State.savings.find(x => x.id === id);
+  if (!s) return;
+
+  s.saved += amt;
+  if (!s.deposits) s.deposits = [];
+  s.deposits.push({ date, amount: amt, note });
+
+  closeSavingDepositModal();
+  saveState();
+  renderSavings();
+  showToast('+' + fmt(amt) + ' agregados a "' + s.name + '"');
+}
+
 // ANUAL
 // ══════════════════════════════════════════════════════
 function setYear(y) { State.anualYear = y; renderAnual(); }

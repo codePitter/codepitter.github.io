@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="windows" data-mode="dark">
+<html lang="es" data-theme="cyber" data-mode="dark">
 <head>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
   <meta charset="UTF-8">
@@ -93,6 +93,7 @@
         <button class="nav-tab" data-section="presupuesto" onclick="showSection('presupuesto',this)">Presupuesto</button>
         <button class="nav-tab" data-section="calendario" onclick="showSection('calendario',this)">Calendario</button>
         <button class="nav-tab" data-section="deudas" onclick="showSection('deudas',this)">Deudas</button>
+        <button class="nav-tab" data-section="ahorro" onclick="showSection('ahorro',this)">Ahorro</button>
         <button class="nav-tab" data-section="anual" onclick="showSection('anual',this)">Anual</button>
       </div>
       <div class="nav-right">
@@ -122,12 +123,13 @@
         <button onclick="toggleSidebar()">✕</button>
       </div>
       <nav class="sidebar-nav">
-        <button onclick="showSection('dashboard');toggleSidebar()">📊 Dashboard</button>
-        <button onclick="showSection('gastos');toggleSidebar()">💸 Gastos</button>
-        <button onclick="showSection('presupuesto');toggleSidebar()">📋 Presupuesto</button>
-        <button onclick="showSection('calendario');toggleSidebar()">📅 Calendario</button>
-        <button onclick="showSection('deudas');toggleSidebar()">🚨 Deudas</button>
-        <button onclick="showSection('anual');toggleSidebar()">📈 Anual</button>
+        <button onclick="showSection('dashboard')">📊 Dashboard</button>
+        <button onclick="showSection('gastos')">💸 Gastos</button>
+        <button onclick="showSection('presupuesto')">📋 Presupuesto</button>
+        <button onclick="showSection('calendario')">📅 Calendario</button>
+        <button onclick="showSection('deudas')">🚨 Deudas</button>
+        <button onclick="showSection('ahorro')">🐷 Ahorro</button>
+        <button onclick="showSection('anual')">📈 Anual</button>
       </nav>
     </aside>
     <div class="sidebar-overlay hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -368,6 +370,103 @@
         </div>
       </section>
 
+
+      <!-- ── AHORRO ── -->
+      <section id="sec-ahorro" class="app-section">
+        <div class="section-header">
+          <h2>Ahorro</h2>
+          <button class="btn btn-primary" onclick="openSavingModal()">+ Nueva alcancía</button>
+        </div>
+        <div class="kpi-grid kpi-grid-3 mb16">
+          <div class="card kpi-card">
+            <div class="kpi-label">Total ahorrado</div>
+            <div class="kpi-value clr-success" id="savingTotalSaved">$0</div>
+            <div class="kpi-sub" id="savingTotalSub">0 alcancías activas</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Meta total</div>
+            <div class="kpi-value clr-accent" id="savingTotalGoal">$0</div>
+            <div class="kpi-sub">Suma de todas las metas</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Progreso global</div>
+            <div class="kpi-value clr-warn" id="savingTotalPct">0%</div>
+            <div class="kpi-sub">Sobre el total de metas</div>
+          </div>
+        </div>
+        <div id="savingList"></div>
+      </section>
+
+      <!-- Modal nueva / editar alcancía -->
+      <div class="modal-overlay hidden" id="savingOverlay">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 id="savingModalTitle">Nueva Alcancía</h3>
+            <button onclick="closeSavingModal()">✕</button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="savingEditId" value="">
+            <div class="form-group">
+              <label>Nombre del objetivo</label>
+              <input type="text" id="savingName" placeholder="Ej: Vacaciones, Auto, Fondo de emergencia">
+            </div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Meta ($)</label>
+                <input type="number" id="savingGoal" placeholder="0" min="0">
+              </div>
+              <div class="form-group">
+                <label>Fecha objetivo</label>
+                <input type="date" id="savingDate">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Monto inicial ($) <span style="color:var(--clr-muted);font-size:10px">opcional</span></label>
+              <input type="number" id="savingInitial" placeholder="0" min="0" value="0">
+            </div>
+            <div class="form-group">
+              <label>Notas</label>
+              <input type="text" id="savingNotes" placeholder="Descripción opcional...">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeSavingModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveSaving()">Guardar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal agregar ingreso a alcancía -->
+      <div class="modal-overlay hidden" id="savingDepositOverlay">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 id="savingDepositTitle">Agregar ingreso</h3>
+            <button onclick="closeSavingDepositModal()">✕</button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="savingDepositId" value="">
+            <div class="form-group">
+              <label>Monto a agregar ($)</label>
+              <input type="number" id="savingDepositAmt" placeholder="0" min="0">
+            </div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="savingDepositDate">
+              </div>
+              <div class="form-group">
+                <label>Nota</label>
+                <input type="text" id="savingDepositNote" placeholder="Ej: Sueldo de marzo">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeSavingDepositModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveSavingDeposit()">Agregar</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ── ANUAL ── -->
       <section id="sec-anual" class="app-section">
         <div class="section-header">
@@ -428,7 +527,7 @@
     <div class="panel-section">
       <div class="panel-label">Tema visual</div>
       <div class="theme-options">
-        <div class="theme-option" data-theme="cyber" onclick="setTheme('cyber')">
+        <div class="theme-option active" data-theme="cyber" onclick="setTheme('cyber')">
           <div class="theme-preview-swatch swatch-cyber">
             <span class="swatch-icon-cyber">⚡</span>
           </div>
@@ -456,7 +555,7 @@
           <span class="theme-option-name">Sofisticado</span>
           <span class="theme-option-check">✓</span>
         </div>
-        <div class="theme-option active" data-theme="windows" onclick="setTheme('windows')">
+        <div class="theme-option" data-theme="windows" onclick="setTheme('windows')">
           <div class="theme-preview-swatch swatch-windows">
             <span class="swatch-icon-windows">🪟</span>
           </div>
