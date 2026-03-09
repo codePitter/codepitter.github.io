@@ -1,6 +1,6 @@
 # Clarita la Cuenta — Master Reference
 > Documento completo para retomar el proyecto en cualquier sesión de Claude AI.
-> Última actualización: 8 de marzo 2026
+> Última actualización: 9 de marzo 2026
 
 ---
 
@@ -23,11 +23,11 @@ Gestión personal de finanzas para Argentina con inflación alta: control de gas
 ## 2. PROYECTO: Clarita la Cuenta
 
 ### Deploy
-- **URL pública:** `https://codepitter.github.io/FinControl`
-- **Repo:** `https://github.com/codePitter/FinControl`
-- **Deploy automático:** GitHub Actions (workflow "Deploy FinControl to GitHub Pages")
+- **URL pública:** `https://codepitter.github.io` ← repo renombrado a raíz
+- **Repo:** `https://github.com/codePitter/codepitter.github.io`
+- **Deploy automático:** GitHub Actions
 
-> ℹ️ El nombre del repo es "FinControl" pero el branding visible es "Clarita la Cuenta". El logo, título, SEO y todas las referencias visuales usan el nombre de marca.
+> ℹ️ El repo fue renombrado de `FinControl` → `ClaritaLaCuenta` → `codepitter.github.io` para que el sitio quede en el dominio raíz, requerido por Google AdSense.
 
 ### Stack
 | Capa | Tecnología |
@@ -37,41 +37,49 @@ Gestión personal de finanzas para Argentina con inflación alta: control de gas
 | Auth | Supabase Auth (email/password + Google OAuth) |
 | Base de datos | Supabase (PostgreSQL, tabla `user_data` con JSONB) |
 | Persistencia offline | localStorage |
-| Deploy | GitHub Pages |
-| Publicidad | Google AdSense (bloques implementados, pendiente Publisher ID) |
+| Deploy | GitHub Pages (dominio raíz) |
+| Publicidad | Google AdSense ✅ Cuenta creada · Publisher ID activo · Pendiente aprobación |
 
 ### Estructura de archivos
 ```
-FinControl/
+codepitter.github.io/
 ├── index.html           (~894 líneas)
 ├── css/style.css        (~1300 líneas)
 ├── js/main.js           (~1895 líneas, ~105 funciones)
-├── js/config.js         ← Credenciales (gitignored)
+├── js/config.js         ← Credenciales (gitignored, opcional — main.js tiene fallback)
 ├── js/config.example.js
+├── ads.txt              ← Google AdSense verificación ✅
 ├── fc-rescue.js         ← Script de rescate para consola del navegador
 ├── supabase_schema.sql
 ├── .gitignore
 ├── README.md
-├── STRUCTURE.md         ← Referencia técnica detallada
-└── FINCONTROL_MASTER.md ← Este archivo
+└── CLARITALACUENTA_MASTER.md ← Este archivo
 ```
 
 > ⚠️ **Regla de trabajo:** Siempre subir los 3 archivos (main.js, index.html, style.css) al inicio de cada sesión de Claude. Los outputs de Claude no persisten entre sesiones.
 
 ---
 
-## 3. CREDENCIALES (NO subir al repo)
+## 3. CREDENCIALES
 
+### Supabase + Google (embebidas en main.js como fallback)
 ```js
-// js/config.js
-window.APP_CONFIG = {
-  supabaseUrl:    'https://vqlbxuoowzgnlqyahink.supabase.co',
-  supabaseKey:    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxbGJ4dW9vd3pnbmxxeWFoaW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODU5NzMsImV4cCI6MjA4ODI2MTk3M30.CC-JUlO662O46HRuR75Ia9AUc8GrusyQ00aIZDoQYvk',
-  googleClientId: '175409993499-v38h85aqn2of4qqem2dfrl2ahu19rmfq.apps.googleusercontent.com',
-};
+// Embebidas en js/main.js como fallback (líneas 234-235, 382)
+// js/config.js es OPCIONAL — si existe lo sobreescribe, si no existe main.js usa estos valores
+const SUPABASE_URL  = '...supabaseUrl...'    || 'https://vqlbxuoowzgnlqyahink.supabase.co';
+const SUPABASE_KEY  = '...supabaseKey...'    || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+const GOOGLE_CLIENT_ID = '...googleClientId...' || '175409993499-v38h85aqn2of4qqem2dfrl2ahu19rmfq.apps.googleusercontent.com';
 ```
 
+> ℹ️ La `supabaseKey` es la **anon key** (pública por diseño). No es riesgo de seguridad — el acceso a los datos está protegido por las políticas RLS. Sin autenticación válida, la key es inútil para leer o modificar datos de otros usuarios.
+
 **Supabase dashboard:** `supabase.com/dashboard/project/vqlbxuoowzgnlqyahink`
+
+### Google AdSense
+- **Publisher ID:** `ca-pub-2282157571185363`
+- **ads.txt:** `google.com, pub-2282157571185363, DIRECT, f08c47fec0942fa0`
+- **Estado:** ✅ Sitio verificado · ⏳ Pendiente aprobación (1–14 días)
+- **Panel:** `adsense.google.com/adsense/u/0/pub-2282157571185363`
 
 ---
 
@@ -227,28 +235,35 @@ Controla `State.budgetYear` / `State.budgetMonth`. El auto-cálculo siempre filt
 
 ---
 
-## 8. PUBLICIDAD
+## 8. PUBLICIDAD (Google AdSense)
 
-### Bloques implementados (7 en total)
-| Ubicación | Tipo | Visible en |
-|-----------|------|-----------|
-| Dashboard — encima de KPIs | Banner horizontal auto | Todos |
-| Gastos — pie de sección | Footer horizontal auto | Todos |
-| Presupuesto — pie de sección | Footer horizontal auto | Todos |
-| Deudas — pie de sección | Footer horizontal auto | Todos |
-| Anual — pie de sección | Footer horizontal auto | Todos |
-| Sidebar derecha (sticky, `#adSidebar`) | 160×600 | Solo ≥ 1200px |
+### Estado actual
+- ✅ Publisher ID activo: `ca-pub-2282157571185363`
+- ✅ Script en `<head>` del `index.html` (una sola instancia, línea 32)
+- ✅ `ads.txt` en raíz del repo
+- ✅ Sitio verificado por AdSense
+- ⏳ Pendiente aprobación de cuenta (1–14 días)
+- ⏳ Pendiente: reemplazar `data-ad-slot="XXXXXXXXXX"` con Slot IDs reales (una vez aprobado)
+
+### Bloques implementados (6 en total)
+| Ubicación | ID | Tipo | Visible en |
+|-----------|-----|------|-----------|
+| Dashboard — encima de KPIs | `adBannerDash` | Banner horizontal auto | Todos |
+| Gastos — pie de sección | — | Footer horizontal auto | Todos |
+| Presupuesto — pie de sección | — | Footer horizontal auto | Todos |
+| Deudas — pie de sección | — | Footer horizontal auto | Todos |
+| Anual — pie de sección | — | Footer horizontal auto | Todos |
+| Sidebar derecha (sticky) | `adSidebar` | 160×600 | Solo ≥ 1200px |
 
 ### Diseño no-intrusivo
 - Los banners van **al final** de la sección, nunca interrumpiendo el contenido
 - Etiqueta `<span class="ad-label">Publicidad</span>` discreta (9px, opacity 0.6)
 - El sidebar desaparece en pantallas < 1200px
-- En móvil los banners tienen altura mínima reducida
 
-### Para activar AdSense
-1. Reemplazar `ca-pub-XXXXXXXXXX` con tu Publisher ID real
-2. Reemplazar cada `data-ad-slot="XXXXXXXXXX"` con los Slot IDs de cada unidad
-3. Google aprueba la cuenta antes de mostrar anuncios reales
+### Para activar los anuncios (una vez aprobado)
+1. Ir a AdSense → Anuncios → Por unidad de anuncio → crear 6 unidades
+2. Reemplazar cada `data-ad-slot="XXXXXXXXXX"` con el Slot ID correspondiente
+3. Pasarle los 6 Slot IDs a Claude para actualizar `index.html`
 
 ---
 
@@ -324,6 +339,8 @@ Pequeño indicador verde/naranja en el nav que muestra si el último guardado fu
 | Fix 8 | Anti-flash: auth screen oculto antes de pintar si hay sesión en localStorage |
 | Fix 9 | Sidebar: eliminado `toggleSidebar()` redundante en botones del menú |
 | Fix 10 | `overflow-y: scroll` en html para scrollbar siempre visible |
+| Fix 11 | Credenciales embebidas en `main.js` como fallback — elimina dependencia de `config.js` en producción |
+| Fix 12 | Script AdSense duplicado eliminado del `<head>` — quedó una sola instancia con Publisher ID real |
 
 ---
 
@@ -346,7 +363,7 @@ El script: lee localStorage → aplica al State → actualiza UI → sube a Supa
 El presupuesto actual es estático — al cambiar de mes se pierden los valores. Falta guardar snapshots por mes (`YYYY-MM`), comparativa y autocompletar desde el mes anterior.
 
 **B. Manutención hijos como módulo**
-M�dulo dedicado: monto acordado/pagado/pendiente por mes, alertas de vencimiento, historial por hijo.
+Módulo dedicado: monto acordado/pagado/pendiente por mes, alertas de vencimiento, historial por hijo.
 
 **C. Importar/exportar datos**
 `exportData()` existe pero no tiene botón en la UI. Crucial para respaldo manual ante riesgo de pérdida en localStorage.
@@ -406,9 +423,11 @@ grep "getItemActual" main.js         # debe existir (auto-cálculo presupuesto)
 grep "ad-footer-wrap" index.html     # debe existir (4 ocurrencias)
 grep "sec-ahorro" index.html         # debe existir
 grep "\.ad-label" style.css          # debe existir (CSS publicidad)
+grep "ca-pub-2282157571185363" index.html  # debe existir (Publisher ID AdSense)
+grep "fincontrol\|FinControl" main.js      # debe ser 0 resultados
 ```
 
 **Estado esperado de los archivos correctos:**
-- `main.js`: ~1895+ líneas, ~105+ funciones, sin errores de sintaxis
-- `index.html`: ~894+ líneas, secciones: dashboard, gastos, presupuesto, calendario, deudas, ahorro, anual. SEO completo, favicon SVG, 7 bloques de publicidad
+- `main.js`: ~1895+ líneas, ~105+ funciones, sin errores de sintaxis, credenciales Supabase embebidas como fallback, sin referencias a FinControl
+- `index.html`: ~894+ líneas, secciones: dashboard, gastos, presupuesto, calendario, deudas, ahorro, anual. SEO completo, favicon SVG, 6 bloques de publicidad, Publisher ID `ca-pub-2282157571185363` en una sola instancia del script AdSense
 - `style.css`: ~1300+ líneas, incluye temas y sección de publicidad al final (`.ad-banner-wrap`, `.ad-footer-wrap`, `.ad-sidebar`)
